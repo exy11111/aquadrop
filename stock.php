@@ -34,7 +34,9 @@
     <body class="sb-nav-fixed">
         <nav class="sb-topnav navbar navbar-expand navbar-dark bg-primary">
             <!-- Navbar Brand-->
-            <a class="navbar-brand ps-3" href="index.php">AquaDrop</a>
+            <a class="navbar-brand ps-3" href="index.php">
+                <img src="assets/img/aquadrop.png" alt="AquaDrop Logo" style="width: 236px; height: 40px;">
+            </a>
             <!-- Sidebar Toggle-->
             <button class="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0" id="sidebarToggle" href="#!"><i class="fas fa-bars"></i></button>     
             <!-- Navbar-->
@@ -286,22 +288,54 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <form action="process_editproduct.php" method="POST" enctype="multipart/form-data">
+                        <input type="text" name="product_id" id="editProductId" required hidden>
                         <!-- Modal Body -->
                         <div class="modal-body">
 
-                        <!-- Product Image -->
-                    <div class="mb-3 text-center">
-                        <label class="form-label">Product Image</label>
-                        <div class="d-flex justify-content-center">
-                            <img id="editProductImagePreview" 
-                                 src="default-image.jpg" 
-                                 alt="Product Image" 
-                                 class="img-fluid rounded border" 
-                                 style="width: 150px; height: 150px; object-fit: cover; cursor: pointer;"
-                                 onclick="document.getElementById('editProductImage').click();">
-                        </div>
-                        <input type="file" class="form-control mt-2" id="editProductImage" name="product_image" accept="image/*" hidden>
-                    </div>
+                            <!-- Product Image -->
+                            <div class="mb-3 text-center">
+                                <label class="form-label">Product Image</label>
+                                <div class="d-flex justify-content-center position-relative">
+                                    <img id="editProductImagePreview" 
+                                        src="default-image.jpg" 
+                                        alt="Product Image" 
+                                        class="img-fluid rounded border"
+                                        style="width: 150px; height: 150px; object-fit: cover; cursor: pointer;"
+                                        onclick="document.getElementById('editProductImage').click();">
+                                    <div class="position-absolute top-50 start-50 translate-middle d-none bg-dark bg-opacity-50 rounded-circle p-2"
+                                        id="editIcon"
+                                        style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="bi bi-pencil text-white"></i>
+                                    </div>
+                                </div>
+                                <input type="file" class="form-control mt-2" id="editProductImage" name="product_photo" accept="image/*" hidden>
+                            </div>
+
+                            <script>
+                                const imagePreview = document.getElementById('editProductImagePreview');
+                                const editIcon = document.getElementById('editIcon');
+                                const fileInput = document.getElementById('editProductImage');
+
+                                imagePreview.addEventListener('mouseenter', () => {
+                                    editIcon.classList.remove('d-none');
+                                });
+
+                                imagePreview.addEventListener('mouseleave', () => {
+                                    editIcon.classList.add('d-none');
+                                });
+
+                                fileInput.addEventListener('change', (event) => {
+                                    const file = event.target.files[0]; // Get the selected file
+                                    if (file) {
+                                        const reader = new FileReader();
+                                        reader.onload = function(e) {
+                                            imagePreview.src = e.target.result; // Set new image source
+                                        };
+                                        reader.readAsDataURL(file);
+                                    }
+                                });
+                            </script>
+
 
                                 <!-- Product Name -->
                                 <div class="mb-3">
@@ -409,6 +443,16 @@
                     confirmButtonText: 'OK'
                 });
             </script>
+        <?php elseif(isset($_GET['edit']) && $_GET['edit'] == 'success'): ?>
+            <script>
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: 'Item edited successfully.',
+                    confirmButtonColor: '#3085d6',
+                    confirmButtonText: 'OK'
+                });
+            </script>
         <?php endif; ?>
 
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -424,14 +468,12 @@
                         dataType: "json",
                         success: function(response) {
                             if (response.success) {
-                                //$("#editProductId").val(response.data.product_id);
+                                $("#editProductId").val(productId);
                                 $("#editProductName").val(response.data.product_name);
                                 $("#editWaterPrice").val(response.data.water_price);
                                 $("#editContainerPrice").val(response.data.container_price);
-                                $("#editStock").val(response.data.stock);*
-
-                                // Set the image preview
-                                //$("#editPreviewPhoto").attr("src", response.data.product_photo);
+                                $("#editStock").val(response.data.stock);
+                                $("#editProductImagePreview").attr("src", response.data.product_photo);
                             } else {
                                 alert("Error fetching product data.");
                             }
